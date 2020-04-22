@@ -13,8 +13,16 @@ def post_detail(request, pk):
     post_likes = PostLike.objects.filter(post=post).count()
     post_dislikes = PostDislike.objects.filter(post=post).count()
     total = post_likes + post_dislikes
-    likes_percent = post_likes / total * 100
-    dislikes_percent = post_dislikes / total * 100
+    if post_likes > 0 :
+        likes_percent = post_likes / total * 100
+    else :
+        likes_percent = 0
+
+    if post_dislikes > 0:
+        dislikes_percent = post_dislikes / total * 100
+    else:
+        dislikes_percent = 0
+        
     return render(request, 'blog/post_detail.html', {'post': post, 'likes_percent': likes_percent, 'dislikes_percent': dislikes_percent})
 
 @login_required
