@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import Post, Comment
+from .models import Post, Comment, PostLike, PostDislike
 from .forms import PostForm, CommentForm
 
 def post_list(request):
@@ -10,7 +10,12 @@ def post_list(request):
 
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    return render(request, 'blog/post_detail.html', {'post': post})
+    post_likes = PostLike.objects.filter(post=post).count()
+    post_dislikes = PostDislike.objects.filter(post=post).count()
+    total = post_likes + post_dislikes
+    likes_percent = post_likes / total * 100
+    dislikes_percent = post_dislikes / total * 100
+    return render(request, 'blog/post_detail.html', {'post': post, 'likes_percent': likes_percent, 'dislikes_percent': dislikes_percent})
 
 @login_required
 def post_new(request):
@@ -55,6 +60,16 @@ def post_remove(request, pk):
     post = get_object_or_404(Post, pk=pk)
     post.delete()
     return redirect('post_list')
+
+@login_required
+def post_like(request, pk):
+    post_like, created = PostLike.objects.get_or_create(post_id=pk, user=request.user)
+    return redirect('post_detail', pk=pk)
+
+@login_required
+def post_dislike(request, pk):
+    post_dislike, created = PostDislike.objects.get_or_create(post_id=pk, user=request.user)
+    return redirect('post_detail', pk=pk)
 
 def add_comment_to_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
